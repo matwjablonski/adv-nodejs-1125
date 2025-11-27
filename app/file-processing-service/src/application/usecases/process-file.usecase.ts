@@ -3,6 +3,7 @@ import { WorkerFactory } from '../../infrastructure/workers/worker-factory.js';
 import { FileRepositoryPort } from '../ports/file-repository.port.js';
 import { FileEntity } from '../../domain/file.entity.js';
 import crypto from 'crypto';
+import { Fail, Ok, Result } from '../../shared/result.js';
 
 export class ProcessFileUseCase {
   constructor(
@@ -10,15 +11,28 @@ export class ProcessFileUseCase {
     private wf: WorkerFactory
   ) {}
 
-  async execute(cmd: ProcessFileCommand) {
-    const id = crypto.randomUUID();
-    const f = new FileEntity(id, cmd.fileName, 'processing');
+  async execute(cmd: ProcessFileCommand): Promise<Result<{ fileId: string }>> {
+    try {
+      if (!cmd.fileName || cmd.fileName.length === 0) {
+        return Fail('Invalid file name');
+      }
 
-    await this.repo.save(f);
-    const w = this.wf.create();
+      if (!cmd.fileBuffer || cmd.fileBuffer.length === 0) {
+        return Fail('File buffer is empty');
+      }
 
-    w.postMessage({ fileId: id, buffer: cmd.fileBuffer });
+      const id = crypto.randomUUID();
+      const f = new FileEntity(id, cmd.fileName, 'processing');
 
-    return { fileId: id };
+      await this.repo.save(f);
+      const w = this.wf.create();
+
+      w.postMessage({ fileId: id, buffer: cmd.fileBuffer });
+
+      return Ok({ fileId: id });
+    } catch (e: unknown) {
+      const errMsg = e instanceof Error ? e.message : 'Unknown error';
+      return Fail(errMsg)
+    }
   }
 }
