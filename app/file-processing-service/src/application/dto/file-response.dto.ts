@@ -1,8 +1,8 @@
 export class FileResponseDto {
     constructor(
-        private fileId: string,
-        private name: string,
-        private status: string,
-        private uploadedAt: Date,
+        public readonly fileId: string,
+        public readonly name: string,
+        public readonly status: string,
+        public readonly uploadedAt: Date,
     ) {}
 }
