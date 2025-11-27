@@ -1,17 +1,21 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { FileEntity } from "../../domain/file.entity";
 import { FileResponseDto } from "../dto/file-response.dto";
+import { UploadFileDto } from "../dto/upload-file.dto";
 
 export class FileMapper {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static toDto(entity: FileEntity): FileResponseDto {
-    // implementation
+    return new FileResponseDto(
+      entity.id,
+      entity.name,
+      entity.status,
+      new Date(),
+    );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static toDomain(dto: UploadFileDto): { name: string; buffer: Buffer } {
-    // implementation
+  static toDomain(dto: UploadFileDto, buffer: Buffer): { name: string; buffer: Buffer } {
+    return {
+      name: dto.name,
+      buffer: buffer,
+    }
   }
 }
