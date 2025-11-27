@@ -5,7 +5,6 @@ import { FileEntity } from '../../domain/file.entity.js';
 import crypto from 'crypto';
 
 export class ProcessFileUseCase {
-
   constructor(
     private repo: FileRepositoryPort,
     private wf: WorkerFactory

@@ -18,6 +18,6 @@ export async function uploadHandler(req: Request, res: Response) {
     fileBuffer: req.file.buffer,
     fileName: req.file.originalname,
   });
-  
+
   res.json(result);
 }
