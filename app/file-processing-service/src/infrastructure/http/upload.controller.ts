@@ -38,9 +38,8 @@ export async function streamFileHandler(req: Request, res: Response) {
 
   const worker = wf.create();
 
-  worker.on('message', (data) => {
+  worker.on('message', (data) => {    
     if (data.error) {
-      console.error('Worker error:', data.error);
       if (!res.headersSent) {
         res.status(500).send('Processing error');
       }
@@ -55,41 +54,26 @@ export async function streamFileHandler(req: Request, res: Response) {
   });
 
   worker.on('error', (error) => {
-    console.error('Worker error:', error);
     if (!res.headersSent) {
-      res.status(500).send('Worker error');
+      res.status(500).send('Worker error: ' + error.message);
     }
     worker.terminate();
   });
 
+  worker.on('exit', (code) => {
+    console.log('Worker exited with code:', code);
+  });
+
   worker.postMessage({ buffer: req.file.buffer });
 
-  req.on('close', () => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(500).send('Processing timeout');
+    }
     worker.terminate();
+  }, 10000);
+
+  worker.on('exit', () => {
+    clearTimeout(timeout);
   });
 }
-
-
-//
-
-function wrapperFunction() {
-  let storage = [];
-
-  function addToStorage(item: any) {
-    storage.push(item);
-  }
-
-  function getStorage() {
-    return storage;
-  }
-
-  return {
-    addToStorage,
-    getStorage
-  }
-}
-
-const storageWrapper = wrapperFunction();
-
-storageWrapper.addToStorage('Sample Item');
-console.log(storageWrapper.getStorage());

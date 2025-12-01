@@ -2,14 +2,31 @@ import { Readable, Transform } from 'stream';
 import { parentPort } from 'worker_threads';
 
 parentPort!.on('message', async ({ buffer }) => {
-  const fileStream = Readable.from(buffer.toString('utf-8'), {
-    highWaterMark: 1024
+  const chunkSize = 64;
+  const fileStream = new Readable({
+    read() {
+      let offset = 0;
+      const data = buffer.toString('utf-8');
+      
+      while (offset < data.length) {
+        const chunk = data.slice(offset, offset + chunkSize);
+        if (!this.push(chunk)) {
+          break;
+        }
+        offset += chunkSize;
+      }
+      
+      if (offset >= data.length) {
+        this.push(null);
+      }
+    }
   });
 
   let lineNumber = 1;
   let executionCount = 0;
 
   const transformStream = new Transform({
+    highWaterMark: chunkSize,
     transform(chunk: Buffer, _encoding, callback) {
       executionCount++;
       const lines = chunk.toString().split('\n');
@@ -39,31 +56,6 @@ parentPort!.on('message', async ({ buffer }) => {
       parentPort!.postMessage({ buffer: Buffer.from(result) });
     })
     .on('error', (error) => {
-      console.error('Stream error:', error);
       parentPort!.postMessage({ error: error.message });
     });
 });
-
-
-// async function poll(delayMs: number) {
-//   try {
-//     const res = await fetch('http://localhost:3000/health');
-
-//     if (!res.ok) {
-//       throw new Error(`Health check failed with status: ${res.status}`);
-//     }
-
-//     const data = await res.json();
-
-//     // Adjust delay based on health status
-
-//     delayMs = 2000;
-//   } catch (e) {
-//     console.error('Health check error:', e);
-//   } finally {
-
-//     setTimeout(() => poll(delayMs), delayMs);
-//   }
-// }
-
-// poll(5000);
