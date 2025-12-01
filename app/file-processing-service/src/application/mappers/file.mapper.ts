@@ -14,7 +14,7 @@ export class FileMapper {
 
   static toDomain(dto: UploadFileDto, buffer: Buffer): { name: string; buffer: Buffer } {
     return {
-      name: dto.name,
+      name: dto.originalname,
       buffer: buffer,
     }
   }

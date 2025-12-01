@@ -4,6 +4,7 @@ import { FileRepositoryPort } from '../ports/file-repository.port.js';
 import { FileEntity } from '../../domain/file.entity.js';
 import crypto from 'crypto';
 import { Fail, Ok, Result } from '../../shared/result.js';
+import { Log } from '../../shared/log.decorator.js';
 
 export class ProcessFileUseCase {
   constructor(
@@ -11,7 +12,15 @@ export class ProcessFileUseCase {
     private wf: WorkerFactory
   ) {}
 
+  @Log()
   async execute(cmd: ProcessFileCommand): Promise<Result<{ fileId: string }>> {
+    const blockEventLoop = () => {
+      const start = Date.now();
+
+      // eslint-disable-next-line no-empty
+      while (Date.now() - start < 200) {}
+    }
+
     try {
       if (!cmd.fileName || cmd.fileName.length === 0) {
         return Fail('Invalid file name');
@@ -21,13 +30,15 @@ export class ProcessFileUseCase {
         return Fail('File buffer is empty');
       }
 
+      blockEventLoop();
+
       const id = crypto.randomUUID();
       const f = new FileEntity(id, cmd.fileName, 'processing');
 
       await this.repo.save(f);
-      const w = this.wf.create();
+      // const w = this.wf.create();
 
-      w.postMessage({ fileId: id, buffer: cmd.fileBuffer });
+      // w.postMessage({ fileId: id, buffer: cmd.fileBuffer });
 
       return Ok({ fileId: id });
     } catch (e: unknown) {
