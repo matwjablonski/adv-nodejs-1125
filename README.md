@@ -6,4 +6,4 @@ Mateusz Jabłoński My email: mail@mateuszjablonski.com
 
 ## Additional materials
 
-You can find additional learning materials in the [materials/SOURCES.md](materials/SOURCES.md) file. Also, there is a [./materials/advanced-nodejs-with-typescript.pdf](presentation).
+You can find additional learning materials in the (materials/SOURCES.md)[./materials/SOURCES.md] file. Also, there is a (./materials/advanced-nodejs-with-typescript.pdf)[presentation].
